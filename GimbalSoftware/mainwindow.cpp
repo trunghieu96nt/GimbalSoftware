@@ -9,9 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* Connect Signals and Slots */
     connect(ui->draggableTitleBar, SIGNAL(mousePressing(QMouseEvent*)),
-            this, SLOT(on_draggableTitleBar_mousePressing(QMouseEvent* event)));
+            this, SLOT(on_draggableTitleBar_mousePressing(QMouseEvent*)));
     connect(ui->draggableTitleBar, SIGNAL(mouseMoving(QMouseEvent*)),
-            this, SLOT(on_draggableTitleBar_mouseMoving(QMouseEvent* event)));
+            this, SLOT(on_draggableTitleBar_mouseMoving(QMouseEvent*)));
     connect(ui->btnClose, SIGNAL(clicked()), this, SLOT(close()));
     connect(ui->btnMinimize, SIGNAL(clicked()), this, SLOT(on_btnMinimize_clicked()));
 
