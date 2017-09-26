@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* QLineEdit Validator */
     QDoubleValidator *paramsValidator = new QDoubleValidator(this);
+    paramsValidator->setNotation(QDoubleValidator::StandardNotation);
     paramsValidator->setDecimals(6);
     ui->ledKp->setValidator(paramsValidator);
     ui->ledKi->setValidator(paramsValidator);

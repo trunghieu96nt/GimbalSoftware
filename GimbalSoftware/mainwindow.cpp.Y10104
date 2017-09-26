@@ -1,0 +1,109 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    /* Connect Signals and Slots */
+    connect(ui->draggableTitleBar, SIGNAL(mousePressing(QMouseEvent*)),
+            this, SLOT(on_draggableTitleBar_custom_mousePressing(QMouseEvent*)));
+    connect(ui->draggableTitleBar, SIGNAL(mouseMoving(QMouseEvent*)),
+            this, SLOT(on_draggableTitleBar_custom_mouseMoving(QMouseEvent*)));
+
+    connect(ui->btnClose, SIGNAL(clicked()), this, SLOT(close()));
+    connect(ui->btnMinimize, SIGNAL(clicked()), this, SLOT(on_btnMinimize_custom_clicked()));
+    connect(ui->btnConnect, SIGNAL(clicked()), this, SLOT(on_btnConnect_custom_clicked()));
+
+    /* Serial Port */
+    serialCOMPort->setBaudRate(QSerialPort::Baud115200);
+    serialCOMPort->setDataBits(QSerialPort::Data8);
+    serialCOMPort->setParity(QSerialPort::NoParity);
+    serialCOMPort->setStopBits(QSerialPort::OneStop);
+    serialCOMPort->setFlowControl(QSerialPort::NoFlowControl);
+
+    /* The first seacrh COM Port */
+    foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
+    {
+//        qDebug() << "Name : " << info.portName();
+//        qDebug() << "Description : " << info.description();
+//        qDebug() << "Manufacturer: " << info.manufacturer();
+        ui->cboCom->addItem(info.portName());
+    }
+
+    /* Timer 1s to search exist COM Port */
+    timerCOMPort = new QTimer(this);
+    connect(timerCOMPort, SIGNAL(timeout()), this, SLOT(on_timerCOMPort_timeout()));
+    timerCOMPort->start(1000);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::on_draggableTitleBar_custom_mousePressing(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        dragPosition = event->globalPos() - frameGeometry().topLeft();
+        event->accept();
+    }
+}
+
+void MainWindow::on_draggableTitleBar_custom_mouseMoving(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton) {
+        move(event->globalPos() - dragPosition);
+        event->accept();
+    }
+}
+
+void MainWindow::on_btnMinimize_custom_clicked()
+{
+    this->setWindowState(Qt::WindowMinimized);
+}
+
+void MainWindow::on_btnConnect_custom_clicked()
+{
+    if (ui->btnConnect->text() == "Connect")
+    {
+        serialCOMPort->setPortName(ui->cboCom->currentText());
+
+        if (serialCOMPort->open(QSerialPort::ReadWrite) == true)
+        {
+            ui->btnConnect->setText("Disconnect");
+        }
+    }
+    else
+    {
+        ui->btnConnect->setText("Connect");
+        serialCOMPort->close();
+    }
+}
+
+void MainWindow::on_timerCOMPort_custom_timeout()
+{
+    listCOMPort.clear();
+
+    /* Add new item */
+    foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
+    {
+        if (ui->cboCom->findText(info.portName()) == -1)
+        {
+            ui->cboCom->addItem(info.portName());
+            ui->cboCom->setCurrentText(info.portName());
+        }
+        listCOMPort.append(info.portName());
+    }
+
+    /* Remove missing item */
+    for (int i = 0; i < ui->cboCom->count(); i++)
+    {
+        if (listCOMPort.contains(ui->cboCom->itemText(i)) == false)
+        {
+            ui->cboCom->removeItem(i);
+        }
+    }
+}

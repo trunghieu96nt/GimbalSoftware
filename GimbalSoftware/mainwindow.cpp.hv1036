@@ -166,19 +166,15 @@ void MainWindow::on_btnPointing_custom_clicked()
 
 void MainWindow::on_btnSetKp_custom_clicked()
 {
-    quint32 scaledValue = 0;
+    //quint32 scaledValue = 0;
 
+    //scaledValue = quint32 (ui->ledKp->text().toDouble() * 1000000);
     if (ui->ledKp->text() == NULL)
     {
-        QToolTip::showText(ui->ledKp->mapToGlobal(QPoint(3, -50)), "Enter value");
+        QToolTip::showText(ui->ledKp->mapToGlobal(QPoint(0, 0)), "Enter desired value");
     }
-    else
-    {
-        scaledValue = quint32 (ui->ledKp->text().toDouble() * 1000000);
-        ui->pteStatus->appendPlainText("- Send: Kp " + ui->cboPIDAxis->currentText() +
-                                       " " + ui->cboPIDName->currentText());
-        qDebug() << scaledValue;
-    }
+    ui->pteStatus->appendPlainText("- Send: Kp " + ui->cboPIDAxis->currentText() +
+                                   " " + ui->cboPIDName->currentText());
 }
 
 void MainWindow::on_btnSetKi_custom_clicked()

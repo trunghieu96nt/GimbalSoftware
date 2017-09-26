@@ -118,8 +118,7 @@ QLabel
 	font: bold 18px;
 }
 
-QToolTip
-{
+QToolTip {
 	border: 1px solid ff0000;
 }
 </string>
