@@ -389,6 +389,9 @@ QPushButton:hover
      <property name="text">
       <string/>
      </property>
+     <property name="maxLength">
+      <number>6</number>
+     </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
@@ -409,7 +412,7 @@ QPushButton:hover
       <string/>
      </property>
      <property name="maxLength">
-      <number>5</number>
+      <number>6</number>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -1062,6 +1065,9 @@ QPushButton:hover:!pressed
        <height>40</height>
       </rect>
      </property>
+     <property name="maxLength">
+      <number>6</number>
+     </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
@@ -1139,7 +1145,7 @@ QPushButton:hover
       </rect>
      </property>
      <property name="maxLength">
-      <number>5</number>
+      <number>6</number>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

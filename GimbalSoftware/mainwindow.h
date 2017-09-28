@@ -32,11 +32,20 @@ private slots:
     void on_btnManual_custom_clicked();
     void on_btnTracking_custom_clicked();
     void on_btnPointing_custom_clicked();
+    void on_btnAZSetPos_custom_clicked();
+    void on_btnAZSetVel_custom_clicked();
+    void on_btnAZSetPosVel_custom_clicked();
+    void on_btnAZGetPos_custom_clicked();
+    void on_btnELSetPos_custom_clicked();
+    void on_btnELSetVel_custom_clicked();
+    void on_btnELSetPosVel_custom_clicked();
+    void on_btnELGetPos_custom_clicked();
     void on_btnSetKp_custom_clicked();
     void on_btnSetKi_custom_clicked();
     void on_btnSetKd_custom_clicked();
     void on_btnSetKff1_custom_clicked();
     void on_btnSetKff2_custom_clicked();
+    void on_btnGetParams_custom_clicked();
 
     void on_timerCOMPort_custom_timeout();
 
