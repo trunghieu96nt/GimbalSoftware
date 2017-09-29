@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->draggableTitleBar, SIGNAL(mouseMoving(QMouseEvent*)),
             this, SLOT(on_draggableTitleBar_custom_mouseMoving(QMouseEvent*)));
 
+    connect(serialCOMPort, SIGNAL(readyRead()), this, SLOT(on_serialCOMPort_custom_readyRead()));
+
     connect(ui->btnClose, SIGNAL(clicked()), this, SLOT(close()));
     connect(ui->btnMinimize, SIGNAL(clicked()), this, SLOT(on_btnMinimize_custom_clicked()));
     connect(ui->btnConnect, SIGNAL(clicked()), this, SLOT(on_btnConnect_custom_clicked()));
@@ -99,6 +101,24 @@ void MainWindow::on_draggableTitleBar_custom_mouseMoving(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton) {
         move(event->globalPos() - dragPosition);
         event->accept();
+    }
+}
+
+void MainWindow::on_serialCOMPort_custom_readyRead()
+{
+    int idxGB, msgLength;
+    QByteArray receivedMsg;
+
+    dataSerialCOMPort.append(serialCOMPort->readAll());
+    idxGB = dataSerialCOMPort.indexOf("GB");
+    if (idxGB == -1) return;
+    dataSerialCOMPort.remove(0, idxGB);
+    msgLength = dataSerialCOMPort[5] + 6;
+    if (dataSerialCOMPort.size() >= msgLength)
+    {
+        receivedMsg = dataSerialCOMPort.left(msgLength);
+        dataSerialCOMPort.remove(0, msgLength);
+        parseMsg(receivedMsg);
     }
 }
 
@@ -688,6 +708,147 @@ bool MainWindow::sendCommand(char msgID, const QByteArray &payload)
     dataArray.append((char)(checkSum & 0x0ff));
 
     return serialCOMPort_write(dataArray);
+}
+
+bool MainWindow::parseMsg(const QByteArray &msg)
+{
+    QString showResMsg;
+    quint16 checkSum = 0, checkSumMask = 0;
+    int curValue = 0;
+
+    /* Check DstID */
+    if (msg.size() < 2) return false;
+    if (msg.at(2) != 0x01) return false;
+
+    /* Checksum */
+    checkSumMask = (msg.at(msg.size() - 2) << 8) & 0x0ff00;
+    checkSumMask += msg.at(msg.size() - 1) & 0x0ff;
+    for (int i = 0; i < (msg.size() - 2); i++)
+    {
+        checkSum += static_cast<unsigned char>(msg.at(i));
+    }
+    checkSum = ~checkSum;
+    if (checkSumMask != checkSum) return false;
+
+    /* Handle Respond Set Message */
+    showResMsg.clear();
+    if (msg.size() < 6) return false;
+    switch (msg.at(6))
+    {
+    case 0x01:
+        showResMsg.append("- Receive: Set Home ");
+        break;
+    case 0x02:
+        showResMsg.append("- Receive: Set Stop ");
+        break;
+    case 0x03:
+        showResMsg.append("- Receive: Set Emergency Stop ");
+        break;
+    case 0x04:
+        showResMsg.append("- Receive: Set Mode ");
+        break;
+    case 0x05:
+        showResMsg.append("- Receive: Set Pos ");
+        break;
+    case 0x06:
+        showResMsg.append("- Receive: Set Vel ");
+        break;
+    case 0x07:
+        showResMsg.append("- Receive: Set Pos Vel ");
+        break;
+    case 0x09:
+        showResMsg.append("- Receive: Set Kp ");
+        break;
+    case 0x0a:
+        showResMsg.append("- Receive: Set Ki ");
+        break;
+    case 0x0b:
+        showResMsg.append("- Receive: Set Kd ");
+        break;
+    case 0x0c:
+        showResMsg.append("- Receive: Set Kff1 ");
+        break;
+    case 0x0d:
+        showResMsg.append("- Receive: Set Kff2 ");
+        break;
+    }
+
+    if (showResMsg.isEmpty() == false)
+    {
+        if (msg.size() < 8) return false;
+        if (msg.at(7) == 0x01) showResMsg.append("AZ ");
+        else if (msg.at(7) == 0x02) showResMsg.append("EL ");
+        else if (msg.at(7) == 0x03) showResMsg.append("Both ");
+
+        if (msg.at(8) == 0x00) showResMsg.append("Ok");
+        else if (msg.at(8) == 0x01) showResMsg.append("Error");
+
+        ui->pteStatus->appendPlainText(showResMsg);
+        return true;
+    }
+
+    /* Handle Respond Get Message */
+    switch (msg.at(6))
+    {
+    case 0x08:
+        if (msg.size() < 11) return false;
+        curValue = (msg.at(8) << 24) & 0x0ff000000;
+        curValue += (msg.at(9) << 16) & 0x0ff0000;
+        curValue += (msg.at(10) << 8) & 0x0ff00;
+        curValue += msg.at(11) & 0x0ff;
+
+        showResMsg.append("- Receive: Get Pos ");
+
+        if (msg.at(7) == 0x01)
+        {
+            showResMsg.append("AZ ");
+            ui->ledAZPos->setText(QString::number((double)curValue / 100.0, 'g', 2));
+        }
+        else if (msg.at(7) == 0x02)
+        {
+            showResMsg.append("EL ");
+            ui->ledELPos->setText(QString::number((double)curValue / 100.0, 'g', 2));
+        }
+
+        showResMsg.append("Done");
+        break;
+    case 0x0e:
+        if (msg.size() < 27) return false;
+        curValue = (msg.at(8) << 24) & 0x0ff000000;
+        curValue += (msg.at(9) << 16) & 0x0ff0000;
+        curValue += (msg.at(10) << 8) & 0x0ff00;
+        curValue += msg.at(11) & 0x0ff;
+        ui->ledKp->setText(QString::number((double)curValue / 1000000.0, 'g', 6));
+
+        curValue = (msg.at(12) << 24) & 0x0ff000000;
+        curValue += (msg.at(13) << 16) & 0x0ff0000;
+        curValue += (msg.at(14) << 8) & 0x0ff00;
+        curValue += msg.at(15) & 0x0ff;
+        ui->ledKi->setText(QString::number((double)curValue / 1000000.0, 'g', 6));
+
+        curValue = (msg.at(16) << 24) & 0x0ff000000;
+        curValue += (msg.at(17) << 16) & 0x0ff0000;
+        curValue += (msg.at(18) << 8) & 0x0ff00;
+        curValue += msg.at(19) & 0x0ff;
+        ui->ledKd->setText(QString::number((double)curValue / 1000000.0, 'g', 6));
+
+        curValue = (msg.at(20) << 24) & 0x0ff000000;
+        curValue += (msg.at(21) << 16) & 0x0ff0000;
+        curValue += (msg.at(22) << 8) & 0x0ff00;
+        curValue += msg.at(23) & 0x0ff;
+        ui->ledKff1->setText(QString::number((double)curValue / 1000000.0, 'g', 6));
+
+        curValue = (msg.at(24) << 24) & 0x0ff000000;
+        curValue += (msg.at(25) << 16) & 0x0ff0000;
+        curValue += (msg.at(26) << 8) & 0x0ff00;
+        curValue += msg.at(27) & 0x0ff;
+        ui->ledKff2->setText(QString::number((double)curValue / 1000000.0, 'g', 6));
+
+        showResMsg.append("- Receive: Get Params Done ");
+        break;
+    }
+    ui->pteStatus->appendPlainText(showResMsg);
+    return true;
 }
 
 

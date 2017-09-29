@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QStringList>
 #include <QToolTip>
+#include <QString>
 
 namespace Ui {
 class MainWindow;
@@ -24,6 +25,8 @@ public:
 private slots:
     void on_draggableTitleBar_custom_mousePressing(QMouseEvent* event);
     void on_draggableTitleBar_custom_mouseMoving(QMouseEvent* event);
+
+    void on_serialCOMPort_custom_readyRead();
 
     void on_btnMinimize_custom_clicked();
     void on_btnConnect_custom_clicked();
@@ -55,9 +58,11 @@ private:
     QSerialPort *serialCOMPort = new QSerialPort;
     QTimer *timerCOMPort;
     QStringList listCOMPort;
+    QByteArray dataSerialCOMPort;
 
     bool serialCOMPort_write(const QByteArray &data);
     bool sendCommand(char msgID, const QByteArray &payload);
+    bool parseMsg(const QByteArray &msg);
 };
 
 #endif // MAINWINDOW_H
