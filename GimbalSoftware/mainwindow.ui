@@ -41,7 +41,7 @@ QPushButton
 	background-color: #f8f8f8;
 	border-radius: 5px;
 }
-QPushButton:pressed
+QPushButton:pressed:!checked
 {
 	background-color: #e2e2e2;
 }
@@ -53,6 +53,10 @@ QPushButton:checked
 {
 	color: white;
 	background-color: #33cc33;
+}
+QPushButton:pressed:checked
+{
+	background-color:  #2eb82e;
 }
 
 QLineEdit

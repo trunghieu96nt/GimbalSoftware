@@ -687,7 +687,7 @@ bool MainWindow::sendCommand(char msgID, const QByteArray &payload)
     quint16 checkSum = 0;
 
     /* Header */
-    dataArray.append(QByteArray::fromRawData("\x47\x42\x02\x01\x00",5));
+    dataArray.append(QByteArray::fromRawData("\x47\x42\x02\x01\x00", 5));
 
     /* Length */
     dataArray.append((char)(1 + payload.count() + 2));
@@ -802,12 +802,12 @@ bool MainWindow::parseMsg(const QByteArray &msg)
         if (msg.at(7) == 0x01)
         {
             showResMsg.append("AZ ");
-            ui->ledAZPos->setText(QString::number((double)curValue / 100.0, 'g', 2));
+            ui->ledAZPos->setText(QString::number((double)curValue / 100.0, 'f', 2));
         }
         else if (msg.at(7) == 0x02)
         {
             showResMsg.append("EL ");
-            ui->ledELPos->setText(QString::number((double)curValue / 100.0, 'g', 2));
+            ui->ledELPos->setText(QString::number((double)curValue / 100.0, 'f', 2));
         }
 
         showResMsg.append("Done");
